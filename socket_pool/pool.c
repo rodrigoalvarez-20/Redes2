@@ -2,6 +2,7 @@
 #define __USE_GNU 
 #include <pthread.h>     /* pthread functions and data structures     */
 #include <stdlib.h>      /* rand() and srand() functions              */
+#include <unistd.h>
 /* number of threads used to service requests */
 #define NUM_HANDLER_THREADS 3
 
@@ -61,8 +62,8 @@ void add_request(int request_num, pthread_mutex_t* p_mutex, pthread_cond_t*  p_c
     /* increase total number of pending requests by one. */
     num_requests++;
 
-    printf("add_request: added request with id '%d'\n", a_request->number);
-    fflush(stdout);
+    //printf("add_request: added request with id '%d'\n", a_request->number);
+    //fflush(stdout);
 
     /* unlock mutex */
     rc = pthread_mutex_unlock(p_mutex);
@@ -113,7 +114,7 @@ Request *get_request(pthread_mutex_t* p_mutex) {
  * input:     request pointer, id of calling thread.
  * output:    none.
  */
-void handle_request(struct request* a_request, int thread_id) {
+void handle_request(struct request* a_request, int thread_id) { //Aqui quiza deba de meter el handle de mi socket
     if (a_request) {
 	    printf("Thread '%d' handled request '%d'\n", thread_id, a_request->number);
 	    fflush(stdout);
@@ -134,19 +135,19 @@ void *handle_requests_loop(void* data) {
     struct request* a_request;      /* pointer to a request.               */
     int thread_id = *((int*)data);  /* thread identifying number           */
 
-    printf("Starting thread '%d'\n", thread_id);
-    fflush(stdout);
+    //printf("Starting thread '%d'\n", thread_id);
+    //fflush(stdout);
 
     /* lock the mutex, to access the requests list exclusively. */
     rc = pthread_mutex_lock(&request_mutex);
 
-    printf("thread '%d' after pthread_mutex_lock\n", thread_id);
-    fflush(stdout);
+    //printf("thread '%d' after pthread_mutex_lock\n", thread_id);
+    //fflush(stdout);
 
     /* do forever.... */
     while (1) {
-    	printf("thread '%d', num_requests =  %d\n", thread_id, num_requests);
-    	fflush(stdout);
+    	//printf("thread '%d', num_requests =  %d\n", thread_id, num_requests);
+    	//fflush(stdout);
 	    if (num_requests > 0) { /* a request is pending */
 	        a_request = get_request(&request_mutex);
 	        if (a_request) { /* got a request - handle it and free it */
@@ -157,13 +158,13 @@ void *handle_requests_loop(void* data) {
 	        /* wait for a request to arrive. note the mutex will be */
 	        /* unlocked here, thus allowing other threads access to */
 	        /* requests list.                                       */
-    	    printf("thread '%d' before pthread_cond_wait\n", thread_id);
-    	    fflush(stdout);
+    	    //printf("thread '%d' before pthread_cond_wait\n", thread_id);
+    	    //fflush(stdout);
 	        rc = pthread_cond_wait(&got_request, &request_mutex);
 	        /* and after we return from pthread_cond_wait, the mutex  */
 	        /* is locked again, so we don't need to lock it ourselves */
-    	    printf("thread '%d' after pthread_cond_wait\n", thread_id);
-    	    fflush(stdout);
+    	    //printf("thread '%d' after pthread_cond_wait\n", thread_id);
+    	    //fflush(stdout);
 	    }
     }
 }
