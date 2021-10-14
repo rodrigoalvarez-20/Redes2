@@ -4,7 +4,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
-#define PORT 8080
+#define PORT 8888
 
 int main(int argc, char const *argv[]) {
     int sock = 0, valread;
@@ -31,6 +31,8 @@ int main(int argc, char const *argv[]) {
     }
     send(sock , hello , strlen(hello) , 0 );
     printf("Hello message sent\n");
+    valread = read( sock , buffer, 1024);
+    printf("%s\n",buffer );
     valread = read( sock , buffer, 1024);
     printf("%s\n",buffer );
     return 0;
