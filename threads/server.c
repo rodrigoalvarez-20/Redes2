@@ -13,12 +13,13 @@ int main(){
     bind_fd(&server_fd, addr);
 
     listen_server(&server_fd);
-
-    while(1){
+    int cont = 1;
+    while(cont <= 10){
         if ((new_socket = accept(server_fd, (struct sockaddr *)&addr, (socklen_t*)&addrlen))<0) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
+        cont++;
         pthread_create(&serverThread, NULL, parse_socket, (void *)new_socket);
     }
 

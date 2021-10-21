@@ -20,13 +20,14 @@ int main(){
     sleep(3);
     int cont = 0;
     while(1){
+        system("echo boleta=2020630002 puerto=8888 aplicacion=clientes3.sh > prueba100.txt");
         if ((new_socket = accept(server_fd, (struct sockaddr *)&addr, (socklen_t*)&addrlen))<0) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
         add_request(cont, new_socket, &request_mutex, &got_request);
         cont++;
-        if (rand() > 3*(RAND_MAX/4)) { /* this is done about 25% of the time */
+        if (rand() > 3*(RAND_MAX/4)) {
 	        delay.tv_sec = 0;
 	        delay.tv_nsec = 10;
 	        nanosleep(&delay, NULL);
