@@ -100,7 +100,8 @@ int main(int argc, char const *argv[])
 					expectedBlock = actualBlock + 1;
 					//Significa que si me envia una nueva parte del archivo
 					//Guardar a archivo
-					char data[512];
+					//const char data[512];
+					void *data = malloc(512);
 					memcpy(data, buff + 4, 512);
 					//printf("%s", data);
 					fputs(data, fp);
