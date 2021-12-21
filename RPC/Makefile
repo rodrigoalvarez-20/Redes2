@@ -2,7 +2,7 @@
 .SUFFIXES: .c .o
 CLNT = val_clt
 SRVR = val_srv
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -lnsl
 
 SRVR_OBJ = val_srv_proc.o validator_xdr.o validator_svc.o
 CLNT_OBJ = val_clt.o validator_xdr.o validator_clnt.o

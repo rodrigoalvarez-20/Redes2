@@ -6,65 +6,95 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <poll.h>
 
-struct in_addr        localInterface;
-struct sockaddr_in    groupSock;
-int                   sd;
-int                   datalen;
-char                  databuf[1024];
+struct in_addr localInterface;
+struct sockaddr_in groupSock;
+int sd;
+int datalen;
+char databuf[1024];
+struct pollfd pollfds[1];
 
-int main(int argc, char* argv[]) {
-  /*
-   * Create a datagram socket on which to send.
-   */
+int main(int argc, char *argv[])
+{
+
   sd = socket(AF_INET, SOCK_DGRAM, 0);
-  if (sd < 0) {
-    perror("opening datagram socket");
+  if (sd < 0)
+  {
+    perror("Error al crear el socket.");
     exit(1);
   }
 
   /*
-   * Initialize the group sockaddr structure with a
-   * group address of 224.1.1.1 and port 5555.
+   * Se inicializa la estructura sockaddr con una direccion en grupo de 224.1.1.1 y * en el puerto 5555
    */
-  memset((char*)&groupSock, 0, sizeof(groupSock));
+  memset((char *)&groupSock, 0, sizeof(groupSock));
   groupSock.sin_family = AF_INET;
-  groupSock.sin_addr.s_addr = inet_addr("224.1.1.1");
+  //groupSock.sin_addr.s_addr = inet_addr("224.1.1.1");
+  groupSock.sin_addr.s_addr = inet_addr("224.0.0.1");
   groupSock.sin_port = htons(5555);
 
-  /*
-   * Disable loopback so you do not receive your own datagrams.
+  /**
+   * Para no escucharme a mi mismo
    */
   {
-  char loopch = 0;
+    char loopch = 0;
 
-  if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&loopch, sizeof(loopch)) < 0) {
-    perror("setting IP_MULTICAST_LOOP:");
-    close(sd);
-    exit(1);
+    if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loopch, sizeof(loopch)) < 0)
+    {
+      perror("Error al asignar IP_MULTICAST_LOOP:");
+      close(sd);
+      exit(1);
     }
   }
 
-  /*
-   * Set local interface for outbound multicast datagrams.
-   * The IP address specified must be associated with a local,
-   * multicast-capable interface.
-   */
-  //Direccion hacia donde se quiere enrutar los paquetes Multicast
-  localInterface.s_addr = inet_addr("8.40.1.137");
-  if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&localInterface, sizeof(localInterface)) < 0) {
-    perror("setting local interface");
+  if (argv[1] != NULL) //Si le paso una direccion via parametro, la utilizo
+    localInterface.s_addr = inet_addr(argv[1]);
+  else
+    localInterface.s_addr = INADDR_ANY; //Si no, ocupo la 0.0.0.0
+
+  if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, (char *)&localInterface, sizeof(localInterface)) < 0)
+  {
+    perror("Error al crear la interfaz local");
     exit(1);
   }
 
-
-  /*
-   * Send a message to the multicast group specified by the
-   * groupSock sockaddr structure.
-   */
-  strcpy(databuf, "Hola Mundo");
+  strcpy(databuf, "GET_RPC");
   datalen = strlen(databuf);
-  if (sendto(sd, databuf, datalen, 0, (struct sockaddr*)&groupSock, sizeof(groupSock)) < 0) {
-    perror("sending datagram message");
+  if (sendto(sd, databuf, datalen, 0, (struct sockaddr *)&groupSock, sizeof(groupSock)) < 0)
+  {
+    perror("Error al enviar el mensaje");
   }
+
+  memset(databuf, '\0', datalen);
+
+  pollfds[0].fd = sd;
+  pollfds[0].events = POLLIN;
+
+  int pollRes = poll(pollfds, 1, 15000);
+
+  if (pollRes > 0)
+  {
+    if (pollfds[0].events & POLLIN)
+    {
+      if (read(sd, databuf, datalen) < 0)
+      {
+        perror("Error al recibir el mensaje del servidor");
+        close(sd);
+        exit(-1);
+      }
+
+      // Voy a recibir IP:PUERTO
+      //Ocupar STRTOK
+
+      printf("Data Received:%s\n", databuf);
+    }
+  }
+  else
+  {
+    printf("Tiempo de espera agotado\n");
+    exit(-1);
+  }
+
+  return 0;
 }
