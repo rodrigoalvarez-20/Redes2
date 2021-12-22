@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
     while ((read = getline(&line, &len, fpCSV)) != -1) //Vamos leyendo linea por linea
     {
-        printf("%s", line); //Imprimimos la linea (Esto es solo de DEBUG, ya al momento de hacer el deploy quitar, ya que casi vale madres la compu del labo)
+        //printf("%s", line); //Imprimimos la linea (Esto es solo de DEBUG, ya al momento de hacer el deploy quitar, ya que casi vale madres la compu del labo)
 
         token = strtok(line, delim); // STRTOK --> X
         pointCloud.x = atof(token);  //Asignamos

@@ -20,7 +20,7 @@ int main(){
     sleep(3);
     int cont = 0;
     while(1){
-        system("echo boleta=2020630002 puerto=8888 aplicacion=clientes3.sh > prueba100.txt");
+        //system("echo boleta=2020630002 puerto=8888 aplicacion=clientes3.sh > prueba100.txt");
         if ((new_socket = accept(server_fd, (struct sockaddr *)&addr, (socklen_t*)&addrlen))<0) {
             perror("accept");
             exit(EXIT_FAILURE);

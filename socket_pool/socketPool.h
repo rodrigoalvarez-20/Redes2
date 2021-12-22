@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <string.h>
 #define __USE_GNU 
@@ -56,7 +57,7 @@ void init_server_fd(int *fd, int opt){
 void init_addr(struct sockaddr_in *addr){
     addr->sin_family = AF_INET;
     //addr->sin_addr.s_addr = INADDR_ANY;
-    addr->sin_addr.s_addr = inet_aton("127.0.0.1");
+    addr->sin_addr.s_addr = inet_addr("127.0.0.1");
     addr->sin_port = htons(PORT);
 }
 

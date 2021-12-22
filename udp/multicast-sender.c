@@ -59,13 +59,13 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  strcpy(databuf, "GET_RPC");
+  strcpy(databuf, "Hola multicast");
   datalen = strlen(databuf);
   if (sendto(sd, databuf, datalen, 0, (struct sockaddr *)&groupSock, sizeof(groupSock)) < 0)
   {
     perror("Error al enviar el mensaje");
   }
-
+/* 
   memset(databuf, '\0', datalen);
 
   pollfds[0].fd = sd;
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
   {
     printf("Tiempo de espera agotado\n");
     exit(-1);
-  }
+  } */
 
   return 0;
 }

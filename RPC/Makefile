@@ -3,12 +3,6 @@
 
 .SUFFIXES:
 .SUFFIXES: .c .o
-<<<<<<< HEAD
-CLNT = val_clt
-SRVR = val_srv
-CFLAGS = -g -Wall -lnsl
-=======
->>>>>>> 11810996ad2e8bad0acf087df0e98d13da00cefc
 
 CLNT = val_clt  ## Archivo ejecutable de salida (cliente - Debian-1)
 SRVR = val_srv  ## Archivo ejecutable de salida (servidor - Debian-2)

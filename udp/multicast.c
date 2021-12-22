@@ -43,7 +43,7 @@ int main(){
     }
 
     //Direccion hacia donde se quiere enrutar los paquetes Multicast
-    localInterface.s_addr = inet_addr("192.168.100.100");
+    localInterface.s_addr = inet_addr("192.168.100.21");
 
     //localInterface.s_addr = inet_addr("192.168.100.72");
     if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&localInterface, sizeof(localInterface)) < 0) {
