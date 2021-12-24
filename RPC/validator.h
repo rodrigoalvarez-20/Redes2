@@ -6,7 +6,8 @@
 #ifndef _VALIDATOR_H_RPCGEN
 #define _VALIDATOR_H_RPCGEN
 
-#include <rpc/rpc.h>
+//##include <rpc/rpc.h>
+#include <tirpc/rpc/rpc.h>
 
 
 #ifdef __cplusplus

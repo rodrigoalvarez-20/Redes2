@@ -8,9 +8,9 @@
 #include <string.h>
 
 struct sockaddr_in serverSocket; // Socket del servidor, por el cual vamos a enviar la respuesta
-struct ip_mreq mGroup; // Grupo de multicast
-int sd; // Socket descriptor
-int datalen; 
+struct ip_mreq mGroup;           // Grupo de multicast
+int sd;                          // Socket descriptor
+int datalen;
 char databuf[1024], ipDir[INET_ADDRSTRLEN];
 
 /**
@@ -44,8 +44,8 @@ void initServerSocket(char *ip)
 {
   memset(&serverSocket, 0, sizeof(serverSocket));
   serverSocket.sin_family = AF_INET;
-  serverSocket.sin_port = htons(5555); // Es el mismo puerto que el del grupo multicast
-  if(ip != NULL) // La direccion puede ser cualquiera, asi que se la podemos pasar por parametro
+  serverSocket.sin_port = htons(4321); // Es el mismo puerto que el del grupo multicast
+  if (ip != NULL)                      // La direccion puede ser cualquiera, asi que se la podemos pasar por parametro
     serverSocket.sin_addr.s_addr = inet_addr(ip);
   else
     serverSocket.sin_addr.s_addr = INADDR_ANY;
@@ -71,8 +71,8 @@ void bindSocket()
 
 void setMCOpts()
 {
-  mGroup.imr_multiaddr.s_addr = inet_addr("224.0.0.1"); // La direccion del grupo multicast
-  mGroup.imr_interface.s_addr = INADDR_ANY; // La direccion de la tarjeta por la cual va a recibir los datos. Ocupamos cualquier direccion
+  mGroup.imr_multiaddr.s_addr = inet_addr("226.1.1.1");      // La direccion del grupo multicast
+  mGroup.imr_interface.s_addr = inet_addr("192.168.100.21"); //INADDR_ANY; // La direccion de la tarjeta por la cual va a recibir los datos. Ocupamos cualquier direccion
   if (
       setsockopt(
           sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mGroup, sizeof(mGroup)) < 0)
@@ -86,22 +86,22 @@ int main(int argc, char *argv[])
 {
 
   initSD();
-  initServerSocket(argv[1]);
+  initServerSocket(NULL);
   bindSocket();
   setMCOpts();
 
-  inet_ntop(AF_INET, &serverSocket.sin_addr.s_addr, ipDir, sizeof(ipDir)); // Truco para obtener la direccion IP de una interfaz ya creada
-
   int srvLen = sizeof(serverSocket);
 
-  int nbytes = recvfrom(sd, databuf, sizeof(databuf), 0, (struct sockaddr *)&serverSocket, &srvLen); // Leemos la peticion de multicast cuando llegue
-  if (nbytes < 0)
+  datalen = sizeof(databuf);
+
+  if (read(sd, databuf, datalen) < 0)
   {
-    perror("No se ha podido obtener los datos");
-    return 1;
+
+    perror("Error al obtener el mensaje");
+    exit(1);
   }
 
-  //printf("%s\n", databuf);  // Aqui se muestra el comando o datos enviados por el cliente (de manera multicast)
+  printf("%s\n", databuf);
 
   if (!strcmp(databuf, "GET_RPC")) // Validammos si es el comando esperado
   {
@@ -144,7 +144,18 @@ int main(int argc, char *argv[])
     }
     fclose(rpcFp); //Cerramos el buffer
 
-    //printf("Sending %s ...\n", response);
+    strcpy(response, "Hola cliente");
+    //response = "Hola Client";
+
+    initSD();
+    initServerSocket(argv[1]);
+    bindSocket();
+
+    inet_ntop(AF_INET, &serverSocket.sin_addr.s_addr, ipDir, sizeof(ipDir)); // Truco para obtener la direccion IP de una interfaz ya creada
+
+    printf("%s\n", ipDir);
+
+    printf("Sending %s ...\n", response);
 
     if (sendto(sd, response, sizeof(response), 0, (struct sockaddr *)&serverSocket, sizeof(serverSocket)) < 0) // Enviamos la respuesta
     {

@@ -10,9 +10,10 @@
 
 //Sockets a ocupar
 struct sockaddr_in multicastGroupSocket, localSocket; // Multicast para enviar el paquete de multidifusion y el local para poder recibir una respuesta
-int sd;                                               // Socket descriptor
-int datalen;                                          // Tamaño de los datos, tanto enviados como recibidos (no cambia)
-char databuf[1024];                                   // Buffer de datos (enviar y recibir)
+struct in_addr localInterface;
+int sd;             // Socket descriptor
+int datalen;        // Tamaño de los datos, tanto enviados como recibidos (no cambia)
+char databuf[1024]; // Buffer de datos (enviar y recibir)
 struct pollfd pollfds[1];
 
 /**
@@ -39,8 +40,8 @@ void initMCS()
   memset(&multicastGroupSocket, '\0', sizeof(multicastGroupSocket));
 
   multicastGroupSocket.sin_family = AF_INET;
-  multicastGroupSocket.sin_port = htons(5555);
-  multicastGroupSocket.sin_addr.s_addr = inet_addr("224.0.0.1");
+  multicastGroupSocket.sin_port = htons(4321);
+  multicastGroupSocket.sin_addr.s_addr = inet_addr("226.1.1.1");
 }
 
 /**
@@ -49,12 +50,10 @@ void initMCS()
 
 void setSockOpts()
 {
-  char loopch = 0;
-
-  if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loopch, sizeof(loopch)) < 0)
+  localInterface.s_addr = inet_addr("192.168.100.21");
+  if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, (char *)&localInterface, sizeof(localInterface)) < 0)
   {
-    perror("Error al asignar IP_MULTICAST_LOOP:");
-    close(sd);
+    perror("Error al configurar la interfaz local");
     exit(1);
   }
 }
@@ -71,7 +70,7 @@ void sendMCMSG()
   {
     perror("Error al enviar el mensaje");
   }
-
+  //printf("%d\n", datalen);
   memset(databuf, '\0', datalen);
 }
 
@@ -84,7 +83,7 @@ void initLocalSocket(char *ip)
 {
   memset((char *)&localSocket, 0, sizeof(localSocket));
   localSocket.sin_family = AF_INET;
-  localSocket.sin_port = htons(8080); // El puerto puede ser cualquiera, pero, #Vue+Python Dev
+  localSocket.sin_port = htons(4321); // El puerto puede ser cualquiera, pero, #Vue+Python Dev
   if (ip != NULL)
     localSocket.sin_addr.s_addr = inet_addr(ip);
   else
@@ -110,13 +109,14 @@ int main(int argc, char *argv[])
   initSD();
   initMCS();
   setSockOpts();
+
   sendMCMSG();
 
   initLocalSocket(argv[1]);
   bindLocalSocket();
-  memset(&databuf, '\0', sizeof(databuf));
+  //memset(&databuf, '\0', sizeof(databuf));
 
-  int srvLen = sizeof(multicastGroupSocket);
+  int srvLen = sizeof(localSocket);
 
   // Una vez enviado el mensaje o comando, obtenemos los datos
   // El servidor nos regresa una cadena en formato 'DIRECCION_IP:PUERTO;' la cual contiene todos los datos de las aplicaciones RPC en el servidor
@@ -130,7 +130,17 @@ int main(int argc, char *argv[])
   {
     if (pollfds[0].revents & POLLIN)
     {
-      if (!recvfrom(sd, databuf, sizeof(databuf), 0, (struct sockaddr *)&multicastGroupSocket, &srvLen))
+
+      if (read(sd, databuf, datalen) < 0)
+      {
+
+        perror("Error al obtener el mensaje");
+        exit(1);
+      }
+
+      printf("%s\n", databuf);
+
+      /* if (!recvfrom(sd, databuf, sizeof(databuf), 0, (struct sockaddr *)&localSocket, &srvLen))
       {
         perror("Error al recibir los datos");
         exit(-1);
@@ -140,7 +150,7 @@ int main(int argc, char *argv[])
 
       char *tk; //Token
 
-      //printf("%s\n", databuf);  // Descomentar por si quieren ver los datos que reciben
+      printf("%s\n", databuf);  // Descomentar por si quieren ver los datos que reciben
 
       tk = strtok(databuf, delimIPs); // Iniciamos con el primer token
 
@@ -148,7 +158,7 @@ int main(int argc, char *argv[])
       {                                                  // Mientras la cadena aun tenga un valor
         printf("Aplicacion RPC encontrada en %s\n", tk); // Mostramos la informacion
         tk = strtok(NULL, delimIPs);                     //Siguiente token
-      }
+      } */
     }
   }
   else
